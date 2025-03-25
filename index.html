@@ -44,6 +44,21 @@
             display: none;
         }
         
+        .home-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #4B7BF5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
         .logo {
             width: 50px;
             height: 50px;
@@ -242,6 +257,21 @@
             margin-left: 10px;
         }
         
+        .search-send {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+        
+        .search-send.active {
+            opacity: 1;
+        }
+        
         .disclaimer {
             text-align: center;
             padding: 15px;
@@ -253,6 +283,32 @@
         .chat-container {
             padding: 15px;
             display: none;
+            position: relative;
+        }
+        
+        /* 添加聊天页面返回按钮样式 */
+        .chat-back-button {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #4B7BF5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        
+        .chat-back-button:active {
+            transform: scale(0.95);
+            background-color: #3A6AE4;
         }
         
         .message {
@@ -322,6 +378,7 @@
             background: linear-gradient(120deg, #FFFFFF 0%, #F5F8FF 100%);
             border-radius: 0 18px 18px 18px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            line-height: 1.6;
         }
         
         .user-content {
@@ -390,6 +447,8 @@
             font-weight: bold;
             position: relative;
             padding: 0 2px;
+            z-index: 1;
+            display: inline-block;
         }
         
         .highlight:after {
@@ -583,6 +642,55 @@
         ::selection {
             background: rgba(75, 123, 245, 0.2);
         }
+        
+        /* 添加结构化样式 */
+        .ai-content {
+            line-height: 1.6;
+        }
+        
+        .ai-subtitle {
+            color: #4B7BF5;
+            font-size: 16px;
+            margin: 12px 0 6px 0;
+            font-weight: bold;
+        }
+        
+        .list-item {
+            margin: 8px 0;
+            position: relative;
+            padding-left: 25px;
+            display: block;
+            clear: both;
+            overflow: visible;
+        }
+        
+        .list-number {
+            position: absolute;
+            left: 0;
+        }
+        
+        .warning-box {
+            background-color: rgba(255, 190, 0, 0.1);
+            border-left: 3px solid #FFB300;
+            padding: 8px 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .tip-box {
+            background-color: rgba(75, 123, 245, 0.1);
+            border-left: 3px solid #4B7BF5;
+            padding: 8px 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        /* 修复文本重叠问题 */
+        .ai-content p, .ai-content div, .ai-content span {
+            overflow: visible;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -683,6 +791,9 @@
         
         <!-- 聊天页面 -->
         <div id="chat-page" class="chat-container">
+            <!-- 添加返回按钮 -->
+            <div class="chat-back-button" id="chat-back-button">←</div>
+            
             <div id="chat-messages">
                 <!-- 动态插入对话内容 -->
             </div>
@@ -698,8 +809,8 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/3602/3602145.png" alt="搜索" width="24" height="24">
             </div>
             <input type="text" class="search-input" placeholder="宠物健康就问小兽">
-            <div class="search-mic">
-                <img src="https://cdn-icons-png.flaticon.com/512/3128/3128290.png" alt="语音" width="24" height="24">
+            <div class="search-send">
+                <img src="https://cdn-icons-png.flaticon.com/512/3682/3682321.png" alt="发送" width="24" height="24">
             </div>
         </div>
     </div>
@@ -779,13 +890,26 @@
             
             if (this.value) {
                 document.querySelector('.search-icon img').src = "https://cdn-icons-png.flaticon.com/512/3917/3917754.png"; // 切换到清除图标
+                document.querySelector('.search-send').classList.add('active'); // 激活发送按钮
             } else {
                 document.querySelector('.search-icon img').src = "https://cdn-icons-png.flaticon.com/512/3602/3602145.png"; // 恢复搜索图标
+                document.querySelector('.search-send').classList.remove('active'); // 取消激活发送按钮
             }
             
             typingTimer = setTimeout(() => {
                 // 可以在这里添加输入建议逻辑
             }, doneTypingInterval);
+        });
+
+        // 添加发送按钮点击事件
+        document.querySelector('.search-send').addEventListener('click', function() {
+            const input = document.querySelector('.search-input');
+            const question = input.value.trim();
+            if(question) {
+                showChat(question);
+                input.value = '';
+                this.classList.remove('active'); // 发送后取消激活状态
+            }
         });
 
         // 清空输入框功能
@@ -798,15 +922,15 @@
         });
 
         // 修改返回按钮的onclick事件处理程序
-        document.querySelector('.back-button').onclick = function(e) {
+        document.getElementById('home-button').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('home-page').style.display = 'block';
             document.getElementById('chat-page').style.display = 'none';
             document.querySelector('.back-button').style.display = 'none';
             
-            // 可选：更新URL
+            // 更新URL
             history.pushState({page: 'home'}, '', window.location.pathname);
-        };
+        });
 
         // 修改调用AI API的函数，正确适配deepseek API
         async function callAIAPI(question) {
@@ -857,9 +981,12 @@
                 }
 
                 const data = await response.json();
-                // DeepSeek API 与 OpenAI 格式兼容，可以直接使用
-                return data.choices[0].message.content;
-
+                let content = data.choices[0].message.content;
+                
+                // 处理回答内容，增加结构化
+                content = formatAIResponse(content, question);
+                
+                return content;
             } catch (error) {
                 console.error('调用AI API出错:', error);
                 return `抱歉，我暂时无法连接到服务器。请稍后再试。(${error.message})`;
@@ -870,6 +997,41 @@
                     document.getElementById('chat-messages').removeChild(typingIndicator);
                 }
             }
+        }
+
+        // 添加格式化AI回复的函数
+        function formatAIResponse(text, question) {
+            // 1. 添加段落间距
+            text = text.replace(/\n\n/g, '<br><br>');
+            
+            // 2. 识别列表并格式化 - 修改正则和替换格式
+            text = text.replace(/^\d+\.\s+(.*?)$/gm, '<div class="list-item">$1</div>');
+            
+            // 3. 高亮关键词 - 确保不会造成嵌套标签问题
+            const keywords = extractKeywords(question);
+            keywords.forEach(keyword => {
+                if(keyword.length > 2) { // 避免高亮太短的词
+                    const regex = new RegExp(`(?<!<[^>]*)\\b(${keyword})\\b(?![^<]*>)`, 'gi');
+                    text = text.replace(regex, '<span class="highlight">$1</span>');
+                }
+            });
+            
+            // 4. 为警告/提示内容添加特殊样式
+            text = text.replace(/⚠️\s*(.*?)(?=\n|$)/g, '<div class="warning-box">⚠️ $1</div>');
+            text = text.replace(/提示：\s*(.*?)(?=\n|$)/g, '<div class="tip-box">💡 $1</div>');
+            
+            // 5. 添加小标题样式
+            text = text.replace(/(.+?)：\n/g, '<h4 class="ai-subtitle">$1：</h4>');
+            
+            return text;
+        }
+
+        // 提取问题关键词函数
+        function extractKeywords(question) {
+            // 简单的关键词提取逻辑
+            const stopWords = ["的", "是", "在", "了", "和", "与", "或", "什么", "为什么", "如何", "怎么"];
+            return question.split(/\s+|[,，.。!！?？、:：]/)
+                .filter(word => word.length > 1 && !stopWords.includes(word));
         }
 
         // 修改showChat函数，添加对非预设问题的处理
@@ -945,14 +1107,10 @@
                     const aiResponse = await callAIAPI(question);
                     addAIMessage(aiResponse);
                     
-                    // 为非预设问题创建相关问题推荐
-                    if (!relatedQuestions[question]) {
-                        relatedQuestions[question] = [
-                            "我家宠物需要去哪级医院？",
-                            "如何判断一家宠物医院的服务质量？",
-                            "宠物疫苗接种的合理价格是多少？"
-                        ];
-                    }
+                    // 生成相关问题
+                    const relatedQs = await generateRelatedQuestions(question, aiResponse);
+                    // 保存到relatedQuestions对象
+                    relatedQuestions[question] = relatedQs;
                     addRelatedQuestions(question);
                 })();
             }
@@ -1362,6 +1520,63 @@
                 notice.textContent = '建议使用最新版Chrome、Firefox或Safari浏览器获得最佳体验';
                 document.body.insertBefore(notice, document.body.firstChild);
             }
+        });
+
+        // 修改相关问题生成逻辑
+        async function generateRelatedQuestions(question, aiResponse) {
+            // 从预设问题列表中选择，若没有则动态生成
+            if (relatedQuestions[question]) {
+                return relatedQuestions[question];
+            }
+            
+            try {
+                // 提取问题和回答中的关键词
+                const keywords = extractKeywords(question);
+                const responseKeywords = extractKeywords(aiResponse);
+                const allKeywords = [...new Set([...keywords, ...responseKeywords])];
+                
+                // 基于原问题和回答内容生成相关问题
+                // 这里使用一个简化的逻辑，实际项目中可以再次调用AI API来生成相关问题
+                const petType = question.match(/(猫|狗|兔子|仓鼠|宠物)/g) || ["宠物"];
+                const problemType = question.match(/(掉毛|皮肤|食欲|疫苗|价格|医院|生病|症状|行为)/g) || [];
+                
+                // 生成3个相关问题
+                const related = [];
+                
+                // 如果问题涉及特定宠物问题
+                if (problemType.length > 0) {
+                    related.push(`${petType[0]}${problemType[0]}问题的常见解决方法？`);
+                    related.push(`${petType[0]}${problemType[0]}问题多久需要就医？`);
+                }
+                
+                // 添加一些通用问题
+                if (related.length < 3) {
+                    related.push(`${petType[0]}日常护理的注意事项有哪些？`);
+                    if (related.length < 3) {
+                        related.push(`如何判断${petType[0]}健康状况是否良好？`);
+                    }
+                }
+                
+                return related;
+            } catch (error) {
+                console.error("生成相关问题失败:", error);
+                // 返回默认相关问题
+                return [
+                    "宠物日常护理有哪些注意事项？",
+                    "宠物常见疾病的早期症状有哪些？",
+                    "如何为宠物选择合适的食物？"
+                ];
+            }
+        }
+
+        // 添加聊天页面返回按钮的事件处理
+        document.getElementById('chat-back-button').addEventListener('click', function() {
+            document.getElementById('home-page').style.display = 'block';
+            document.getElementById('chat-page').style.display = 'none';
+            // 重置URL
+            history.pushState({page: 'home'}, '', window.location.pathname);
+            // 滚动回顶部
+            window.scrollTo(0, 0);
         });
     </script>
 </body>
