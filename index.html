@@ -724,6 +724,86 @@
             transform: scale(0.95) !important;
             background-color: #F5F8FF !important;
         }
+        
+        /* 修改"大家都在问"部分的样式 */
+        .popular-question-item {
+            background-color: white;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .question-text {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .question-stats {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .ask-btn {
+            background-color: #4B7BF5;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* Markdown样式 */
+        .ai-content h1, .ai-content h2, .ai-content h3, .ai-content h4 {
+            color: #4B7BF5;
+            margin: 15px 0 8px 0;
+        }
+        
+        .ai-content h1 {
+            font-size: 20px;
+        }
+        
+        .ai-content h2 {
+            font-size: 18px;
+        }
+        
+        .ai-content h3 {
+            font-size: 16px;
+        }
+        
+        .ai-content h4 {
+            font-size: 15px;
+        }
+        
+        .ai-content strong {
+            color: #4B7BF5;
+            font-weight: bold;
+        }
+        
+        .ai-content em {
+            font-style: italic;
+        }
+        
+        .ai-content code {
+            background-color: #f0f2f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .ai-content ul, .ai-content ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .ai-content li {
+            margin-bottom: 5px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -968,10 +1048,9 @@
         // 修改调用AI API的函数，正确适配deepseek API
         async function callAIAPI(question) {
             try {
-                // 显示加载状态
+                // 显示发送中状态
                 const typingDiv = document.createElement('div');
                 typingDiv.classList.add('message', 'message-ai');
-                typingDiv.id = 'ai-typing-indicator';
                 typingDiv.innerHTML = `
                     <div class="avatar">
                         <img src="https://cdn-icons-png.flaticon.com/512/2138/2138508.png" alt="宠医小兽">
@@ -984,7 +1063,6 @@
                 `;
                 document.getElementById('chat-messages').appendChild(typingDiv);
 
-                // 调用deepseek API - 根据官方文档调整
                 const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -992,22 +1070,24 @@
                         'Authorization': 'Bearer sk-a37818a554034b16ba4a30d7e32b3fc7'
                     },
                     body: JSON.stringify({
-                        model: "deepseek-chat", // DeepSeek-V3模型
+                        model: "deepseek-chat",
                         messages: [
                             {
-                                role: "system", 
-                                content: "你是一个名为'宠医小兽'的宠物医疗AI助手，专注于回答宠物健康、医疗、行为等问题。你的回答应该专业、友好且易于理解，基于宠物医学知识但避免使用过于专业的术语。"
+                                role: "system",
+                                content: "你是一个名为'宠医小兽'的宠物医疗AI助手，专注于回答宠物健康、医疗、行为等问题。回答要专业、友好且易于理解。请使用Markdown格式来回答问题，特别是在列表、标题和重点内容上，以提高可读性。将重要知识点或关键词用**粗体**标记，适当使用markdown标题语法（如# 标题）来分隔内容，使用有序或无序列表来组织信息。"
                             },
                             {
-                                role: "user", 
+                                role: "user",
                                 content: question
                             }
                         ],
                         temperature: 0.7,
-                        max_tokens: 1500,
-                        stream: false // 非流式输出
+                        max_tokens: 1500
                     })
                 });
+
+                // 移除typing指示器
+                document.getElementById('chat-messages').removeChild(typingDiv);
 
                 if (!response.ok) {
                     throw new Error(`API请求失败: ${response.status}`);
@@ -1016,47 +1096,52 @@
                 const data = await response.json();
                 let content = data.choices[0].message.content;
                 
-                // 处理回答内容，增加结构化
-                content = formatAIResponse(content, question);
+                // 转换Markdown为HTML
+                content = parseMdToHtml(content);
                 
                 return content;
             } catch (error) {
-                console.error('调用AI API出错:', error);
-                return `抱歉，我暂时无法连接到服务器。请稍后再试。(${error.message})`;
-            } finally {
-                // 移除加载指示器
-                const typingIndicator = document.getElementById('ai-typing-indicator');
-                if (typingIndicator) {
-                    document.getElementById('chat-messages').removeChild(typingIndicator);
-                }
+                console.error("API调用出错:", error);
+                return `很抱歉，我暂时无法回答您的问题。请稍后再试。<br>错误信息: ${error.message}`;
             }
         }
 
-        // 添加格式化AI回复的函数
-        function formatAIResponse(text, question) {
-            // 1. 添加段落间距
-            text = text.replace(/\n\n/g, '<br><br>');
+        // 添加Markdown解析函数
+        function parseMdToHtml(text) {
+            // 基本Markdown解析
+            let html = text
+                // 标题
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+                
+                // 粗体和斜体
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                
+                // 列表
+                .replace(/^\d+\. (.*$)/gm, '<li class="ordered-list-item">$1</li>')
+                .replace(/^- (.*$)/gm, '<li class="unordered-list-item">$1</li>')
+                
+                // 换行和段落
+                .replace(/\n\n/g, '<br><br>')
+                
+                // 高亮
+                .replace(/`(.*?)`/g, '<code>$1</code>');
             
-            // 2. 识别列表并格式化 - 修改正则和替换格式
-            text = text.replace(/^\d+\.\s+(.*?)$/gm, '<div class="list-item">$1</div>');
+            // 包装列表项
+            html = html
+                .replace(/<li class="ordered-list-item">(.*?)<\/li>/g, function(match) {
+                    return '<ol>' + match + '</ol>';
+                })
+                .replace(/<\/ol><ol>/g, '')
+                .replace(/<li class="unordered-list-item">(.*?)<\/li>/g, function(match) {
+                    return '<ul>' + match + '</ul>';
+                })
+                .replace(/<\/ul><ul>/g, '');
             
-            // 3. 高亮关键词 - 确保不会造成嵌套标签问题
-            const keywords = extractKeywords(question);
-            keywords.forEach(keyword => {
-                if(keyword.length > 2) { // 避免高亮太短的词
-                    const regex = new RegExp(`(?<!<[^>]*)\\b(${keyword})\\b(?![^<]*>)`, 'gi');
-                    text = text.replace(regex, '<span class="highlight">$1</span>');
-                }
-            });
-            
-            // 4. 为警告/提示内容添加特殊样式
-            text = text.replace(/⚠️\s*(.*?)(?=\n|$)/g, '<div class="warning-box">⚠️ $1</div>');
-            text = text.replace(/提示：\s*(.*?)(?=\n|$)/g, '<div class="tip-box">💡 $1</div>');
-            
-            // 5. 添加小标题样式
-            text = text.replace(/(.+?)：\n/g, '<h4 class="ai-subtitle">$1：</h4>');
-            
-            return text;
+            return html;
         }
 
         // 提取问题关键词函数
@@ -1746,6 +1831,93 @@
                 container.appendChild(fallbackDiv);
             }
         }
+
+        // 修改"大家都在问"部分的数据
+        const popularQuestions = [
+            {
+                question: "我家宠物需要去哪级医院？",
+                viewed: 5678,
+                asked: 1204
+            },
+            {
+                question: "宠物疫苗接种的合理价格是多少？",
+                viewed: 4215,
+                asked: 856
+            },
+            {
+                question: "如何判断一家宠物医院的服务质量？",
+                viewed: 3289,
+                asked: 564
+            },
+            {
+                question: "我的宠物不吃东西是什么原因？",
+                viewed: 2876,
+                asked: 623
+            }
+        ];
+
+        // 添加显示"大家都在问"数据的函数
+        function renderPopularQuestions() {
+            const questionsContainer = document.querySelector('.popular-questions');
+            if (!questionsContainer) return;
+            
+            // 清空现有内容
+            questionsContainer.innerHTML = '';
+            
+            // 添加"大家都在问"标题
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'section-title';
+            titleDiv.textContent = '大家都在问';
+            questionsContainer.appendChild(titleDiv);
+            
+            // 添加问题列表
+            popularQuestions.forEach(item => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'popular-question-item';
+                
+                questionDiv.innerHTML = `
+                    <div class="question-content">
+                        <div class="question-text">${item.question}</div>
+                        <div class="question-stats">${item.viewed}人看过 · ${item.asked}人问过</div>
+                    </div>
+                    <button class="ask-btn">问问</button>
+                `;
+                
+                // 添加点击事件
+                questionDiv.querySelector('.ask-btn').addEventListener('click', function() {
+                    showChat(item.question);
+                });
+                
+                // 整个问题项也可点击
+                questionDiv.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('ask-btn')) {
+                        showChat(item.question);
+                    }
+                });
+                
+                questionsContainer.appendChild(questionDiv);
+            });
+        }
+
+        // 在DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 渲染"大家都在问"部分
+            renderPopularQuestions();
+            
+            // 其他初始化代码...
+            console.log('DOM加载完成，绑定热门话题和返回按钮事件');
+            
+            // 热门话题点击事件
+            const topicItems = document.querySelectorAll('.topic-item');
+            const topicQuestions = [
+                "我家宠物需要去哪级医院？", // 医院选择
+                "宠物疫苗接种的合理价格是多少？", // 价格参考
+                "我的宠物不吃东西是什么原因？", // 症状自查
+                "宠物需要定期做哪些健康检查？" // 预防保健
+            ];
+            
+            // ... 其他现有代码 ...
+        });
     </script>
 </body>
 </html>
