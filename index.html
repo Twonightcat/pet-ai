@@ -1012,7 +1012,7 @@
             <div class="section-title">热门话题</div>
             
             <div class="hot-topics">
-                <div class="topic-item">
+                <div class="topic-item" onclick="showHotTopicQuestions('hospital')">
                     <div class="topic-icon">
                         <img src="https://cdn-icons-png.flaticon.com/512/2829/2829052.png" alt="医院选择">
                     </div>
@@ -1020,7 +1020,7 @@
                     <div class="topic-subtitle">15个问题</div>
                 </div>
                 
-                <div class="topic-item">
+                <div class="topic-item" onclick="showHotTopicQuestions('vaccine')">
                     <div class="topic-icon">
                         <img src="https://cdn-icons-png.flaticon.com/512/2492/2492458.png" alt="价格参考">
                     </div>
@@ -1028,7 +1028,7 @@
                     <div class="topic-subtitle">18个问题</div>
                 </div>
                 
-                <div class="topic-item">
+                <div class="topic-item" onclick="showHotTopicQuestions('symptoms')">
                     <div class="topic-icon">
                         <img src="https://cdn-icons-png.flaticon.com/512/2966/2966334.png" alt="症状自查">
                     </div>
@@ -1036,7 +1036,7 @@
                     <div class="topic-subtitle">23个问题</div>
                 </div>
                 
-                <div class="topic-item">
+                <div class="topic-item" onclick="showHotTopicQuestions('prevention')">
                     <div class="topic-icon">
                         <img src="https://cdn-icons-png.flaticon.com/512/2787/2787276.png" alt="预防保健">
                     </div>
@@ -2093,17 +2093,15 @@
             // 绑定搜索相关事件
             initSearchEvents();
             
-            // 绑定热门话题点击事件
-            initTopicEvents();
+            // 热门话题弹窗初始化
+            console.log('初始化热门话题弹窗');
+            initHotTopicsModal();
             
             // 绑定返回按钮事件
             initBackButton();
             
             // 加载URL参数
             loadUrlParams();
-            
-            // 添加主题切换功能
-            addThemeSwitcher();
             
             // 图片懒加载
             initLazyLoading();
@@ -2536,6 +2534,7 @@
             
             // 打开弹窗并显示对应话题的问题
             function openModal(topicKey) {
+                console.log('打开热门问题弹窗:', topicKey);
                 // 默认显示医院选择问题
                 topicKey = topicKey || 'hospital';
                 
@@ -2580,15 +2579,28 @@
                         closeModal();
                         showChat(question);
                     });
+                    
+                    // 添加触摸事件支持
+                    questionItem.addEventListener('touchstart', () => {
+                        questionItem.style.backgroundColor = '#f5f5f5';
+                    });
+                    
+                    questionItem.addEventListener('touchend', () => {
+                        questionItem.style.backgroundColor = '';
+                        closeModal();
+                        showChat(question);
+                    });
                 });
             }
             
             // 绑定关闭按钮事件
             closeBtn.addEventListener('click', closeModal);
+            closeBtn.addEventListener('touchend', closeModal);
             modalBackdrop.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('touchend', closeModal);
             
             // 绑定标签页切换事件
-            topicTabs.addEventListener('click', (e) => {
+            topicTabs.addEventListener('click', function(e) {
                 if (e.target.classList.contains('topic-tab')) {
                     const topicKey = e.target.dataset.topic;
                     
@@ -2604,40 +2616,187 @@
                 }
             });
             
-            // 绑定热门话题点击事件
-            const topicItems = document.querySelectorAll('.topic-item');
-            const topicKeys = ['hospital', 'vaccine', 'symptoms', 'prevention'];
-            
-            topicItems.forEach((item, index) => {
-                const newItem = item.cloneNode(true);
-                item.parentNode.replaceChild(newItem, item);
-                
-                newItem.addEventListener('click', () => {
-                    openModal(topicKeys[index]);
-                });
+            // 添加标签触摸事件
+            topicTabs.addEventListener('touchend', function(e) {
+                if (e.target.classList.contains('topic-tab')) {
+                    const topicKey = e.target.dataset.topic;
+                    
+                    // 更新标签页选中状态
+                    const tabs = topicTabs.querySelectorAll('.topic-tab');
+                    tabs.forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    // 渲染问题列表
+                    renderQuestions(topicKey);
+                }
             });
+            
+            // 强化热门话题点击事件
+            function bindTopicItemEvents() {
+                console.log('绑定热门话题点击事件');
+                const topicItems = document.querySelectorAll('.topic-item');
+                const topicKeys = ['hospital', 'vaccine', 'symptoms', 'prevention'];
+                
+                topicItems.forEach((item, index) => {
+                    console.log('绑定话题:', index, topicKeys[index]);
+                    
+                    // 重新克隆以移除可能的旧事件
+                    const newItem = item.cloneNode(true);
+                    item.parentNode.replaceChild(newItem, item);
+                    
+                    // 添加点击和触摸事件
+                    newItem.addEventListener('click', function(e) {
+                        console.log('点击热门话题:', topicKeys[index]);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openModal(topicKeys[index]);
+                    });
+                    
+                    // 触摸开始事件 - 提供视觉反馈
+                    newItem.addEventListener('touchstart', function(e) {
+                        console.log('触摸热门话题开始:', topicKeys[index]);
+                        e.preventDefault();
+                        this.style.transform = 'scale(0.95)';
+                        this.style.backgroundColor = '#F5F8FF';
+                    }, {passive: false});
+                    
+                    // 触摸结束事件 - 打开弹窗
+                    newItem.addEventListener('touchend', function(e) {
+                        console.log('触摸热门话题结束:', topicKeys[index]);
+                        e.preventDefault();
+                        this.style.transform = '';
+                        this.style.backgroundColor = '';
+                        openModal(topicKeys[index]);
+                    }, {passive: false});
+                });
+            }
+            
+            // 立即绑定一次
+            bindTopicItemEvents();
+            
+            // 在DOM内容加载完成后再次绑定
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bindTopicItemEvents);
+            }
+            
+            // 如果已经加载完成，使用setTimeout确保在所有处理之后再次绑定
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                setTimeout(bindTopicItemEvents, 100);
+            }
+            
+            // 设置直接点击方法，供外部调用
+            window.openHotTopicsModal = openModal;
         }
 
-        // 修改初始化函数，添加热门话题弹窗初始化
-        function initializeApp() {
-            console.log('应用初始化开始...');
+        // 添加直接调用的点击处理器
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('添加直接点击处理器');
+            // 为所有热门话题元素添加点击处理器
+            const topicItems = document.querySelectorAll('.topic-item');
+            const topics = ['hospital', 'vaccine', 'symptoms', 'prevention'];
             
-            // 绑定搜索相关事件
-            initSearchEvents();
+            topicItems.forEach((item, index) => {
+                // 使元素可点击
+                item.style.cursor = 'pointer';
+                item.setAttribute('data-topic', topics[index]);
+                
+                // 添加直接点击处理器，避免事件冲突
+                item.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('直接点击热门话题:', topics[index]);
+                    
+                    // 调用全局打开方法
+                    if (window.openHotTopicsModal) {
+                        window.openHotTopicsModal(topics[index]);
+                    } else {
+                        console.error('openHotTopicsModal函数未定义');
+                        // 尝试直接显示弹窗
+                        const modal = document.getElementById('hot-topics-modal');
+                        const backdrop = document.getElementById('modal-backdrop');
+                        if (modal && backdrop) {
+                            backdrop.classList.add('active');
+                            modal.classList.add('active');
+                        }
+                    }
+                };
+                
+                // 添加直接触摸处理器
+                item.ontouchend = function(e) {
+                    e.preventDefault();
+                    console.log('直接触摸热门话题:', topics[index]);
+                    
+                    // 调用全局打开方法
+                    if (window.openHotTopicsModal) {
+                        window.openHotTopicsModal(topics[index]);
+                    } else {
+                        console.error('openHotTopicsModal函数未定义');
+                        // 尝试直接显示弹窗
+                        const modal = document.getElementById('hot-topics-modal');
+                        const backdrop = document.getElementById('modal-backdrop');
+                        if (modal && backdrop) {
+                            backdrop.classList.add('active');
+                            modal.classList.add('active');
+                        }
+                    }
+                };
+            });
+        });
+
+        // 全局函数用于处理热门话题点击
+        function showHotTopicQuestions(topicKey) {
+            console.log("直接通过onclick调用，话题：", topicKey);
             
-            // 热门话题弹窗初始化
-            initHotTopicsModal();
+            const modal = document.getElementById('hot-topics-modal');
+            const backdrop = document.getElementById('modal-backdrop');
+            const topicTabs = document.getElementById('topic-tabs');
+            const questionsList = document.getElementById('hot-questions-list');
             
-            // 绑定返回按钮事件
-            initBackButton();
+            if (!modal || !backdrop || !topicTabs || !questionsList) {
+                console.error("找不到必要的DOM元素");
+                return;
+            }
             
-            // 加载URL参数
-            loadUrlParams();
+            // 更新标签页选中状态
+            const tabs = topicTabs.querySelectorAll('.topic-tab');
+            tabs.forEach(tab => {
+                if (tab.dataset.topic === topicKey) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
             
-            // 图片懒加载
-            initLazyLoading();
+            // 渲染问题列表
+            const questions = hotTopicsQuestions[topicKey] || [];
+            questionsList.innerHTML = '';
             
-            console.log('应用初始化完成');
+            questions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'hot-question-item';
+                questionItem.dataset.index = index + 1;
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'hot-question-text';
+                questionText.textContent = question;
+                
+                questionItem.appendChild(questionText);
+                questionsList.appendChild(questionItem);
+                
+                // 添加点击事件
+                questionItem.onclick = function() {
+                    console.log('点击问题:', question);
+                    backdrop.classList.remove('active');
+                    modal.classList.remove('active');
+                    showChat(question);
+                };
+            });
+            
+            // 显示弹窗
+            backdrop.classList.add('active');
+            modal.classList.add('active');
         }
     </script>
 </body>
