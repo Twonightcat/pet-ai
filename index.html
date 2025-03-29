@@ -804,6 +804,154 @@
         .ai-content li {
             margin-bottom: 5px;
         }
+        
+        /* 添加热门问题弹窗样式 */
+        .hot-topics-modal {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .hot-topics-modal.active {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            position: relative;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 22px;
+            color: #999;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .topic-tabs {
+            display: flex;
+            padding: 10px 15px;
+            overflow-x: auto;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .topic-tab {
+            padding: 8px 16px;
+            margin-right: 10px;
+            border-radius: 18px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .topic-tab.active {
+            background-color: #4B7BF5;
+            color: white;
+        }
+
+        .topic-tab:first-child {
+            background-color: #4B7BF5;
+            color: white;
+        }
+
+        .topic-tab:nth-child(2) {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .topic-tab:nth-child(3) {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .hot-questions-list {
+            padding: 15px;
+        }
+
+        .hot-question-item {
+            margin-bottom: 20px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .hot-question-item:before {
+            content: attr(data-index);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .hot-question-item:nth-child(1):before {
+            color: #E53935;
+        }
+
+        .hot-question-item:nth-child(2):before {
+            color: #FB8C00;
+        }
+
+        .hot-question-item:nth-child(3):before {
+            color: #FFB300;
+        }
+
+        .hot-question-text {
+            font-size: 16px;
+            color: #333;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .real-time-hot {
+            font-size: 14px;
+            color: #999;
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -831,7 +979,7 @@
                 <div class="question-item" onclick="showChat('我家宠物需要去哪级医院？')">
                     <div>
                         <div class="question-text">我家宠物需要去哪级医院？</div>
-                        <div class="view-count">56780人看过 · 12045人问过</div>
+                        <div class="view-count">5678人看过 · 1204人问过</div>
                     </div>
                     <button class="ask-button">问问</button>
                 </div>
@@ -839,7 +987,7 @@
                 <div class="question-item" onclick="showChat('宠物疫苗接种的合理价格是多少？')">
                     <div>
                         <div class="question-text">宠物疫苗接种的合理价格是多少？</div>
-                        <div class="view-count">42153人看过 · 8564人问过</div>
+                        <div class="view-count">4215人看过 · 856人问过</div>
                     </div>
                     <button class="ask-button">问问</button>
                 </div>
@@ -847,7 +995,7 @@
                 <div class="question-item" onclick="showChat('如何判断一家宠物医院的服务质量？')">
                     <div>
                         <div class="question-text">如何判断一家宠物医院的服务质量？</div>
-                        <div class="view-count">32891人看过 · 5642人问过</div>
+                        <div class="view-count">3289人看过 · 564人问过</div>
                     </div>
                     <button class="ask-button">问问</button>
                 </div>
@@ -855,7 +1003,7 @@
                 <div class="question-item" onclick="showChat('我的宠物不吃东西是什么原因？')">
                     <div>
                         <div class="question-text">我的宠物不吃东西是什么原因？</div>
-                        <div class="view-count">28764人看过 · 6235人问过</div>
+                        <div class="view-count">2876人看过 · 623人问过</div>
                     </div>
                     <button class="ask-button">问问</button>
                 </div>
@@ -925,6 +1073,25 @@
             <div class="search-send">
                 <img src="https://cdn-icons-png.flaticon.com/512/3682/3682321.png" alt="发送" width="24" height="24">
             </div>
+        </div>
+    </div>
+
+    <!-- 添加热门问题弹窗 -->
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="hot-topics-modal" id="hot-topics-modal">
+        <div class="modal-header">
+            <div class="modal-title">热门问题</div>
+            <button class="modal-close" id="modal-close">×</button>
+        </div>
+        <div class="topic-tabs" id="topic-tabs">
+            <button class="topic-tab active" data-topic="hospital">医院选择</button>
+            <button class="topic-tab" data-topic="vaccine">价格参考</button>
+            <button class="topic-tab" data-topic="symptoms">症状自查</button>
+            <button class="topic-tab" data-topic="prevention">预防保健</button>
+        </div>
+        <div class="real-time-hot">实时热度</div>
+        <div class="hot-questions-list" id="hot-questions-list">
+            <!-- 问题列表会动态添加 -->
         </div>
     </div>
 
@@ -1073,11 +1240,11 @@
                         model: "deepseek-chat",
                         messages: [
                             {
-                                role: "system",
+                                role: "system", 
                                 content: "你是一个名为'宠医小兽'的宠物医疗AI助手，专注于回答宠物健康、医疗、行为等问题。回答要专业、友好且易于理解。请使用Markdown格式来回答问题，特别是在列表、标题和重点内容上，以提高可读性。将重要知识点或关键词用**粗体**标记，适当使用markdown标题语法（如# 标题）来分隔内容，使用有序或无序列表来组织信息。"
                             },
                             {
-                                role: "user",
+                                role: "user", 
                                 content: question
                             }
                         ],
@@ -1095,7 +1262,7 @@
 
                 const data = await response.json();
                 let content = data.choices[0].message.content;
-                
+
                 // 转换Markdown为HTML
                 content = parseMdToHtml(content);
                 
@@ -1398,7 +1565,7 @@
             });
             
             // 重新绑定热门话题点击事件
-            document.querySelectorAll('.topic-item').forEach((item, index) => {
+        document.querySelectorAll('.topic-item').forEach((item, index) => {
                 item.style.cursor = 'pointer';
                 item.addEventListener('click', function() {
                     console.log('点击热门话题:', topicQuestions[index]);
@@ -1487,8 +1654,8 @@
                 // 绑定热门话题点击事件
                 document.querySelectorAll('.topic-item').forEach((item, index) => {
                     const topicQuestions = [
-                        "我家宠物需要去哪级医院？",
-                        "宠物疫苗接种的合理价格是多少？",
+                "我家宠物需要去哪级医院？",
+                "宠物疫苗接种的合理价格是多少？",
                         "我的宠物不吃东西是什么原因？",
                         "宠物需要定期做哪些健康检查？"
                     ];
@@ -1918,6 +2085,560 @@
             
             // ... 其他现有代码 ...
         });
+
+        // ----- 统一初始化函数 -----
+        function initializeApp() {
+            console.log('应用初始化开始...');
+            
+            // 绑定搜索相关事件
+            initSearchEvents();
+            
+            // 绑定热门话题点击事件
+            initTopicEvents();
+            
+            // 绑定返回按钮事件
+            initBackButton();
+            
+            // 加载URL参数
+            loadUrlParams();
+            
+            // 添加主题切换功能
+            addThemeSwitcher();
+            
+            // 图片懒加载
+            initLazyLoading();
+            
+            console.log('应用初始化完成');
+        }
+        
+        // 搜索相关事件初始化
+        function initSearchEvents() {
+            const searchInput = document.querySelector('.search-input');
+            const searchIcon = document.querySelector('.search-icon');
+            const searchSend = document.querySelector('.search-send');
+            
+            // 输入监听与防抖
+            searchInput.addEventListener('input', function() {
+                clearTimeout(typingTimer);
+                
+                if (this.value) {
+                    searchIcon.querySelector('img').src = "https://cdn-icons-png.flaticon.com/512/3917/3917754.png";
+                    searchSend.classList.add('active');
+                } else {
+                    searchIcon.querySelector('img').src = "https://cdn-icons-png.flaticon.com/512/3602/3602145.png";
+                    searchSend.classList.remove('active');
+                }
+                
+                typingTimer = setTimeout(() => {
+                    // 可以添加搜索建议逻辑
+                }, doneTypingInterval);
+            });
+            
+            // 发送按钮点击事件
+            searchSend.addEventListener('click', function() {
+                const question = searchInput.value.trim();
+                if(question) {
+                    showChat(question);
+                    searchInput.value = '';
+                    this.classList.remove('active');
+                }
+            });
+            
+            // 清空输入框
+            searchIcon.addEventListener('click', function() {
+                if (searchInput.value.trim()) {
+                    searchInput.value = '';
+                    searchIcon.querySelector('img').src = "https://cdn-icons-png.flaticon.com/512/3602/3602145.png";
+                    searchSend.classList.remove('active');
+                }
+            });
+            
+            // 输入框回车事件
+            searchInput.addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') {
+                    const question = this.value.trim();
+                    if(question) {
+                        showChat(question);
+                        this.value = '';
+                        searchSend.classList.remove('active');
+                    }
+                }
+            });
+        }
+        
+        // 热门话题点击事件初始化
+        function initTopicEvents() {
+            const topicItems = document.querySelectorAll('.topic-item');
+            const topicQuestions = [
+                "我家宠物需要去哪级医院？", // 医院选择
+                "宠物疫苗接种的合理价格是多少？", // 价格参考
+                "我的宠物不吃东西是什么原因？", // 症状自查
+                "宠物需要定期做哪些健康检查？" // 预防保健
+            ];
+            
+            // 确保移除旧事件
+            topicItems.forEach((item, index) => {
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
+                
+                newItem.addEventListener('click', function() {
+                    console.log('点击热门话题:', topicQuestions[index]);
+                    showChat(topicQuestions[index]);
+                });
+            });
+            
+            // "大家都在问"点击事件
+            document.querySelectorAll('.question-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('ask-button')) {
+                        const question = this.querySelector('.question-text').textContent;
+                        showChat(question);
+                    }
+                });
+                
+                const askButton = item.querySelector('.ask-button');
+                if (askButton) {
+                    askButton.addEventListener('click', function() {
+                        const question = item.querySelector('.question-text').textContent;
+                        showChat(question);
+                    });
+                }
+            });
+        }
+        
+        // 返回按钮事件处理统一
+        function initBackButton() {
+            const chatBackBtn = document.getElementById('chat-back-button');
+            if (!chatBackBtn) return;
+            
+            // 清除可能存在的旧事件
+            const newChatBackBtn = chatBackBtn.cloneNode(true);
+            chatBackBtn.parentNode.replaceChild(newChatBackBtn, chatBackBtn);
+            
+            // 统一的返回函数
+            const handleReturn = function(e) {
+                if (e) e.preventDefault();
+                console.log('执行返回到主页');
+                
+                document.getElementById('home-page').style.display = 'block';
+                document.getElementById('chat-page').style.display = 'none';
+                
+                // 滚动回顶部
+                window.scrollTo(0, 0);
+                
+                // 更新URL
+                history.pushState({page: 'home'}, '', window.location.pathname);
+            };
+            
+            // 添加点击和触摸事件
+            newChatBackBtn.addEventListener('click', handleReturn);
+            newChatBackBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#3A6AE4';
+            });
+            
+            newChatBackBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#4B7BF5';
+                handleReturn(e);
+            });
+        }
+        
+        // 加载URL参数
+        function loadUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const question = urlParams.get('q');
+            
+            if (question) {
+                showChat(decodeURIComponent(question));
+            }
+        }
+        
+        // 图片懒加载
+        function initLazyLoading() {
+            const images = document.querySelectorAll('img');
+            
+            // 跳过已处理的图片
+            if (!('IntersectionObserver' in window)) {
+                // 降级处理：立即加载所有图片
+                images.forEach(img => {
+                    if (img.getAttribute('data-src')) {
+                        img.setAttribute('src', img.getAttribute('data-src'));
+                    }
+                });
+                return;
+            }
+            
+            const lazyLoad = target => {
+                const io = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            const src = img.getAttribute('data-src');
+                            
+                            if (src) {
+                                img.setAttribute('src', src);
+                                img.removeAttribute('data-src');
+                            }
+                            
+                            observer.disconnect();
+                        }
+                    });
+                });
+                
+                io.observe(target);
+            };
+            
+            images.forEach(image => {
+                if (image.getAttribute('src') && !image.getAttribute('data-src')) {
+                    const dataSrc = image.getAttribute('src');
+                    image.setAttribute('data-src', dataSrc);
+                    image.setAttribute('src', 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PC9zdmc+');
+                    lazyLoad(image);
+                }
+            });
+        }
+
+        // ----- 优化核心函数 -----
+        
+        // 修改AI API调用，优化错误处理和Markdown转换
+        async function callAIAPI(question) {
+            let typingDiv;
+            
+            try {
+                // 显示发送中状态
+                typingDiv = document.createElement('div');
+                typingDiv.classList.add('message', 'message-ai');
+                typingDiv.innerHTML = `
+                    <div class="avatar">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2138/2138508.png" alt="宠医小兽">
+                    </div>
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                `;
+                document.getElementById('chat-messages').appendChild(typingDiv);
+
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-a37818a554034b16ba4a30d7e32b3fc7'
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            {
+                                role: "system", 
+                                content: "你是一个名为'宠医小兽'的宠物医疗AI助手，专注于回答宠物健康、医疗、行为等问题。回答要专业、友好且易于理解。请使用Markdown格式来回答问题，特别是在列表、标题和重点内容上，以提高可读性。将重要知识点或关键词用**粗体**标记，适当使用markdown标题语法（如# 标题）来分隔内容，使用有序或无序列表来组织信息。"
+                            },
+                            {
+                                role: "user", 
+                                content: question
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1500
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+
+                const data = await response.json();
+                let content = data.choices[0].message.content;
+
+                // 转换Markdown为HTML
+                return parseMdToHtml(content);
+            } catch (error) {
+                console.error("API调用出错:", error);
+                return `很抱歉，我暂时无法回答您的问题。请稍后再试。<br>错误信息: ${error.message}`;
+            } finally {
+                // 确保无论如何都移除输入提示
+                if (typingDiv && typingDiv.parentNode) {
+                    document.getElementById('chat-messages').removeChild(typingDiv);
+                }
+            }
+        }
+        
+        // 简化并优化展示聊天的核心函数
+        function showChat(question) {
+            // 显示聊天页面，隐藏首页
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('chat-page').style.display = 'block';
+            
+            // 添加历史状态
+            history.pushState({page: 'chat', question: question}, '', '?q=' + encodeURIComponent(question));
+            
+            // 添加用户问题
+            addUserMessage(question);
+            
+            // 处理问题：预设问题或调用AI API
+            if (answers[question]) {
+                handlePresetQuestion(question);
+            } else {
+                handleCustomQuestion(question);
+            }
+        }
+        
+        // 分离处理预设问题的逻辑
+        function handlePresetQuestion(question) {
+            setTimeout(() => {
+                // 显示正在输入
+                const typingDiv = document.createElement('div');
+                typingDiv.classList.add('message', 'message-ai');
+                typingDiv.innerHTML = `
+                    <div class="avatar">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2138/2138508.png" alt="宠医小兽">
+                    </div>
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                `;
+                document.getElementById('chat-messages').appendChild(typingDiv);
+                
+                setTimeout(() => {
+                    // 删除typing指示器
+                    document.getElementById('chat-messages').removeChild(typingDiv);
+                    
+                    // 一次性展示完整回答
+                    const answer = answers[question];
+                    const completeAnswer = answer.join("<br><br>");
+                    addAIMessage(completeAnswer);
+                    
+                    // 显示相关问题
+                    addRelatedQuestions(question);
+                    
+                    // 滚动到底部
+                    window.scrollTo(0, document.body.scrollHeight);
+                }, 1500);
+            }, 500);
+        }
+        
+        // 分离处理自定义问题的逻辑
+        async function handleCustomQuestion(question) {
+            try {
+                const aiResponse = await callAIAPI(question);
+                addAIMessage(aiResponse);
+                
+                // 生成相关问题
+                const relatedQs = await generateRelatedQuestions(question, aiResponse);
+                
+                // 保存到缓存
+                if (relatedQs && relatedQs.length > 0) {
+                    relatedQuestions[question] = relatedQs;
+                }
+                
+                addRelatedQuestions(question);
+                
+                // 滚动到底部
+                window.scrollTo(0, document.body.scrollHeight);
+            } catch (error) {
+                console.error("处理问题出错:", error);
+                
+                // 添加错误消息
+                addAIMessage("抱歉，处理您的问题时出现了错误。请稍后再试。");
+            }
+        }
+        
+        // 优化添加AI消息的函数，确保在低性能设备上也能正常显示
+        function addAIMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'message-ai');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content', 'ai-content');
+            contentDiv.innerHTML = text;
+            
+            messageDiv.innerHTML = `
+                <div class="avatar">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2138/2138508.png" alt="宠医小兽">
+                </div>
+            `;
+            messageDiv.appendChild(contentDiv);
+            document.getElementById('chat-messages').appendChild(messageDiv);
+            
+            // 滚动到底部
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+        
+        // 添加事件监听
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        
+        // 处理浏览器返回事件
+        window.addEventListener('popstate', function(event) {
+            // 如果当前在聊天页面，切换回主页
+            if (document.getElementById('chat-page').style.display === 'block') {
+                document.getElementById('home-page').style.display = 'block';
+                document.getElementById('chat-page').style.display = 'none';
+            }
+            
+            // 如果有状态信息且是聊天页面，恢复聊天
+            if (event.state && event.state.page === 'chat') {
+                showChat(event.state.question);
+            }
+        });
+
+        // 热门问题内容配置
+        const hotTopicsQuestions = {
+            hospital: [
+                "一级与二级宠物医院有什么区别？",
+                "如何判断一家宠物医院的专业程度？",
+                "宠物体检应该去哪种类型的医院？",
+                "宠物手术需要去几级医院？",
+                "怎样分辨宠物医院的收费是否合理？",
+                "社区宠物医院和大型宠物医院的服务差别在哪里？"
+            ],
+            vaccine: [
+                "猫咪疫苗全套接种的合理价格是多少？",
+                "进口和国产宠物疫苗的价格差别与效果差别？",
+                "犬猫各类常规检查项目的合理价格范围？",
+                "宠物医院套餐服务性价比如何？",
+                "不同城市宠物医疗价格差异大吗？",
+                "如何识别宠物医院的隐形消费陷阱？"
+            ],
+            symptoms: [
+                "宠物突然不吃饭是什么原因？",
+                "狗狗呕吐后精神状态良好需要就医吗？",
+                "猫咪频繁舔毛导致秃毛是什么原因？",
+                "宠物眼睛发红有分泌物是什么情况？",
+                "如何判断宠物腹泻的严重程度？",
+                "宠物咳嗽几天需要就医检查？"
+            ],
+            prevention: [
+                "宠物定期体检包括哪些项目？",
+                "猫咪和狗狗的不同日常护理要点？",
+                "老年宠物需要特别关注的健康问题有哪些？",
+                "宠物肥胖的健康风险与预防方法？",
+                "宠物口腔护理的正确方式是什么？",
+                "室内宠物需要注意的环境健康因素有哪些？"
+            ]
+        };
+
+        // 添加热门问题弹窗功能
+        function initHotTopicsModal() {
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modal = document.getElementById('hot-topics-modal');
+            const closeBtn = document.getElementById('modal-close');
+            const topicTabs = document.getElementById('topic-tabs');
+            const questionsList = document.getElementById('hot-questions-list');
+            
+            // 关闭弹窗
+            function closeModal() {
+                modal.classList.remove('active');
+                modalBackdrop.classList.remove('active');
+            }
+            
+            // 打开弹窗并显示对应话题的问题
+            function openModal(topicKey) {
+                // 默认显示医院选择问题
+                topicKey = topicKey || 'hospital';
+                
+                // 更新标签页选中状态
+                const tabs = topicTabs.querySelectorAll('.topic-tab');
+                tabs.forEach(tab => {
+                    if (tab.dataset.topic === topicKey) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+                
+                // 渲染问题列表
+                renderQuestions(topicKey);
+                
+                // 显示弹窗
+                modalBackdrop.classList.add('active');
+                modal.classList.add('active');
+            }
+            
+            // 渲染问题列表
+            function renderQuestions(topicKey) {
+                const questions = hotTopicsQuestions[topicKey] || [];
+                
+                questionsList.innerHTML = '';
+                
+                questions.forEach((question, index) => {
+                    const questionItem = document.createElement('div');
+                    questionItem.className = 'hot-question-item';
+                    questionItem.dataset.index = index + 1;
+                    
+                    const questionText = document.createElement('div');
+                    questionText.className = 'hot-question-text';
+                    questionText.textContent = question;
+                    
+                    questionItem.appendChild(questionText);
+                    questionsList.appendChild(questionItem);
+                    
+                    // 添加点击事件
+                    questionItem.addEventListener('click', () => {
+                        closeModal();
+                        showChat(question);
+                    });
+                });
+            }
+            
+            // 绑定关闭按钮事件
+            closeBtn.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', closeModal);
+            
+            // 绑定标签页切换事件
+            topicTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('topic-tab')) {
+                    const topicKey = e.target.dataset.topic;
+                    
+                    // 更新标签页选中状态
+                    const tabs = topicTabs.querySelectorAll('.topic-tab');
+                    tabs.forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    // 渲染问题列表
+                    renderQuestions(topicKey);
+                }
+            });
+            
+            // 绑定热门话题点击事件
+            const topicItems = document.querySelectorAll('.topic-item');
+            const topicKeys = ['hospital', 'vaccine', 'symptoms', 'prevention'];
+            
+            topicItems.forEach((item, index) => {
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
+                
+                newItem.addEventListener('click', () => {
+                    openModal(topicKeys[index]);
+                });
+            });
+        }
+
+        // 修改初始化函数，添加热门话题弹窗初始化
+        function initializeApp() {
+            console.log('应用初始化开始...');
+            
+            // 绑定搜索相关事件
+            initSearchEvents();
+            
+            // 热门话题弹窗初始化
+            initHotTopicsModal();
+            
+            // 绑定返回按钮事件
+            initBackButton();
+            
+            // 加载URL参数
+            loadUrlParams();
+            
+            // 图片懒加载
+            initLazyLoading();
+            
+            console.log('应用初始化完成');
+        }
     </script>
 </body>
 </html>
